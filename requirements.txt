@@ -1,3 +1,6 @@
 pymongo[srv]==4.2.0
 from_root
+numpy
+pandas
+sklearn
 -e .
