@@ -3,4 +3,6 @@ from_root
 numpy
 pandas
 sklearn
+PyYAML
+dill
 -e .
