@@ -5,5 +5,8 @@ from sensor.logger import logging
 import os,sys
 from sensor.pipeline.training_pipeline import TrainPipeline
 if __name__ == "__main__":
-    training_pipeline = TrainPipeline()
-    training_pipeline.run_pipeline()
+    try:
+        training_pipeline = TrainPipeline()
+        training_pipeline.run_pipeline()
+    except Exception as e:
+        raise SensorException(e,sys)

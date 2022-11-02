@@ -1,4 +1,3 @@
-from asyncore import file_dispatcher
 from sensor.constants.training_pipeline import SCHEMA_FILE_PATH
 from sensor.exception import SensorException, error_message_detail
 from sensor.logger import logging
@@ -8,7 +7,7 @@ from sensor.entity.artifact_entity import DataIngestionArtifact,DataValidationAr
 import pandas as pd
 from sensor.constants.training_pipeline import *
 from sensor.util.main_utils import read_yaml_file,write_yaml_file
-
+from scipy.stats import ks_2samp
 class DataValidation:
     def __init__(self,data_validation_config:DataValidationConfig,data_ingestion_artifact:DataIngestionArtifact):
         try:
@@ -57,6 +56,45 @@ class DataValidation:
             pass
         except Exception as e:
             raise SensorException(e,sys)
+    def get_data_drift_report(self,base_df,current_df,threshold=0.5)->bool:
+        try:
+            report = {}
+            status = True
+            True_count = 0
+            False_count = 0
+            for column in base_df.columns:
+                d1 = base_df[column]
+                d2 = current_df[column]
+                is_same_dist = ks_2samp(d1,d2)
+                if threshold<=is_same_dist.pvalue:
+                    is_found = False
+                else:
+                    is_found = True
+                if is_found is True:
+                    True_count += 1
+                else:
+                    False_count +=1
+                if True_count >= len(base_df.columns)//2:
+                    status = False
+                report.update({column:{
+                "p_value":float(is_same_dist.pvalue),
+                "drift_status":is_found
+                }})
+            logging.info(f"True count of data_drift found:{True_count}")
+            logging.info(f"False count of data_drift found:{False_count}")
+            logging.info(f"Difference of True and count and no: of columns:{True_count-len(base_df.columns)}")
+            
+            drift_report_file_path = self.data_validation_config.drift_report_file_path
+            logging.info(f"Drift report is generated and exporting to:{drift_report_file_path}")
+            
+            #Creating directory
+            dir_name = os.path.dirname(drift_report_file_path)
+            os.makedirs(dir_name,exist_ok=True)
+
+            write_yaml_file(file_path=drift_report_file_path,content=report)
+            return status
+        except Exception as e:
+            raise SensorException(e,sys)
 
     def initiate_data_validation(self):
         try:
@@ -88,7 +126,17 @@ class DataValidation:
                 raise Exception(erro_message)
                 
             #Lets check data drift
-                
+            status = self.get_data_drift_report(base_df=train_dataframe,current_df=test_dataframe)
+
+            data_validation_artifact = DataValidationArtifact(
+                validation_status=status,
+                valid_train_file_path= self.data_ingestion_artifact.trained_file_path,
+                valid_test_file_path=self.data_ingestion_artifact.test_file_path,
+                invalid_train_file_path=None,
+                invalid_test_file_path=None,
+                drift_report_file_path=self.data_validation_config.drift_report_file_path,
+            )
+            return data_validation_artifact 
         except Exception as e:
             raise SensorException(e,sys)
 
