@@ -2,7 +2,7 @@ from sensor.exception import SensorException
 from sensor.logger import logging
 
 class TargetValueMapping:
-    def __init__(self,):
+    def __init__(self):
         self.neg:int = 0
         self.pos:int = 1
     
