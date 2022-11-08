@@ -26,11 +26,11 @@ class TrainPipeline:
     def start_data_ingestion(self)->DataIngestionArtifact:
         try:
             data_ingestion_config = DataIngestionConfig(training_pipeline_config=self.training_pipeline_config)
-            logging.info("DataIngestion Started")
+            logging.info(f"{'>>'*15}DataIngestion Started{'<<'*15}")
             data_ingestion = DataIngestion(data_ingestion_config=data_ingestion_config)
             data_ingestion_artifact = data_ingestion.initiate_data_ingestion()
 
-            logging.info(f"DataIngestion Completed and artifact:{data_ingestion_artifact}")
+            logging.info(f"{'>>'*15}DataIngestion Completed and artifact:{data_ingestion_artifact}{'<<'*15}")
             return data_ingestion_artifact
         except Exception as e:
             raise SensorException(e,sys)
@@ -38,13 +38,13 @@ class TrainPipeline:
     def start_data_validation(self,data_ingestion_artifact:DataIngestionArtifact)->DataValidationArtifact:
         try:
             data_validation_config = DataValidationConfig(training_pipeline_config=self.training_pipeline_config)
-            logging.info("DataValidation Started")
+            logging.info(f"{'>>'*15}DataValidation Started{'<<'*15}")
             data_validation = DataValidation(data_ingestion_artifact=data_ingestion_artifact,
             data_validation_config=data_validation_config
             )
             data_validation_artifact = data_validation.initiate_data_validation()
 
-            logging.info(f"Data Validation is Completed and artifact:{data_validation_artifact}")
+            logging.info(f"{'>>'*15}Data Validation is Completed and artifact:{data_validation_artifact}{'<<'*15}")
             return data_validation_artifact
         except Exception as e:
             raise SensorException(e,sys)
@@ -52,12 +52,12 @@ class TrainPipeline:
     def start_data_transformation(self,data_validation_artifact:DataValidationArtifact)->DataTransformationArtifact:
         try:
             data_transformation_config = DataTransformationConfig(training_pipeline_config=self.training_pipeline_config)
-            logging.info("DataTransformation Started")
+            logging.info(f"{'>>'*15}DataTransformation Started{'<<'*15}")
             data_transformation = DataTransformation(data_validation_artifact=data_validation_artifact,
             data_transformation_config=data_transformation_config)
             data_transformation_artifact = data_transformation.initiate_data_transformation()
             
-            logging.info(f"Data Transformation is completed and artifact:{data_transformation_artifact}")
+            logging.info(f"{'>>'*15}Data Transformation is completed and artifact:{data_transformation_artifact}")
             return data_transformation_artifact
         except Exception as e:
             raise SensorException(e,sys)
@@ -65,12 +65,12 @@ class TrainPipeline:
     def start_model_trainer(self,data_transformation_artifact:DataTransformationArtifact)->ModelTrainerArtifact:
         try:
             model_trainer_config = ModelTrainerConfig(training_pipeline_config=self.training_pipeline_config)
-            logging.info("Model Training is Started")
+            logging.info(f"{'>>'*15}Model Training is Started{'<<'*15}")
             model_trainer = ModelTrainer(model_trainer_config=model_trainer_config,
                                         data_transformation_artifact=data_transformation_artifact)
 
             model_trainer_artifact = model_trainer.initiate_model_trainer()
-            logging.info(f"Model Training is completed and artifact:{model_trainer_config}")
+            logging.info(f"{'>>'*15}Model Training is completed and artifact:{model_trainer_config}{'<<'*15}")
             return model_trainer_artifact
         except Exception as e:
             raise SensorException(e,sys)
@@ -79,11 +79,11 @@ class TrainPipeline:
                                 data_validation_artifact:DataValidationArtifact)->ModelEvaluationArtifact:
         try:
             model_evaluation_config = ModelEvaluationConfig(training_pipeline_config=self.training_pipeline_config)
-            logging.info(f"{'<<*15'}Model Evaluation is Started{'>>*15'}")
+            logging.info(f"{'<<'*15}Model Evaluation is Started{'>>'*15}")
             model_evaluation = ModelEvaluation(model_evaluation_config=model_evaluation_config,
                     model_training_aritifact=model_trainer_artifact,data_validation_aritfact=data_validation_artifact)
             model_evaluation_artifact = model_evaluation.initiate_model_evaluation()
-            logging.info(f"{'<<*15'}Model Evaluation is Completed{'>>*15'}")
+            logging.info(f"{'<<'*15}Model Evaluation is Completed{'>>'*15}")
             return model_evaluation_artifact
         except Exception as e:
             raise SensorException(e,sys)
@@ -91,10 +91,10 @@ class TrainPipeline:
     def start_model_pusher(self,model_evaluation_artifact:ModelEvaluationArtifact):
         try:
             model_pusher_config = ModelPusherConfig(training_pipeline_config=self.training_pipeline_config)
-            logging.info(f"{'<<*15'}Model Pusher is started{'>>*15'}")
+            logging.info(f"{'<<'*15}Model Pusher is started{'>>'*15}")
             model_pusher = ModelPusher(model_pusher_config=model_pusher_config,model_evaluation_artifact=model_evaluation_artifact)
             model_pusher_artifact = model_pusher.initiate_model_pusher()
-            logging.info(f"{'<<*15'}Model Pusher is completed{'>>*15'}")
+            logging.info(f"{'<<'*15}Model Pusher is completed{'>>'*15}")
             return model_pusher_artifact
         except Exception as e:
             raise SensorException(e,sys)
